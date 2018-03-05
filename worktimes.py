@@ -1,6 +1,9 @@
 import tabula
 import pandas as pd
 import numpy as np
+import os
+
+WORKPATH = '/Volumes/Transcend/nore/gdrive/Documents/OttoPrivat/worktimes/'
 
 
 def filter_weekdays(table):
@@ -31,6 +34,8 @@ def parse_table(filename):
     pd.options.mode.chained_assignment = None
 
     table = filter_weekdays(table)
+    table['year'] = filename.split('-')[0].split('/')[-1]
+    table['month'] = filename.split('-')[1].split('.')[0]
     table['day'] = table[0].str.split(" ").apply(lambda x: int(x[0]))
     table['weekday'] = table[0].str.split(" ").apply(lambda x: x[2])
     table['state'] = table[0].str.split(" ").apply(lambda x: (" ").join(x[4:]))
@@ -45,16 +50,24 @@ def parse_table(filename):
     table['glz'] = table[9].apply(lambda x: glz2float(x))
     table['overworktime'] = table[10].str.replace(",", ".").astype(float)
 
-    parsed_table = table.loc[:, 'day':'overworktime']
-    return parsed_table 
-    #parsed_table.to_csv(filename.replace(".pdf", ".csv"), index=False)
+    parsed_table = table.loc[:, 'year':'overworktime']
+    return parsed_table
+    # parsed_table.to_csv(filename.replace(".pdf", ".csv"), index=False)
+
+
+def get_pdf_files():
+    pdf_path = WORKPATH + 'pdf'
+    pdf_files = [f for f in os.listdir(pdf_path) if f.endswith('.pdf')]
+    return pdf_files
 
 
 def main():
-    # Read pdf into DataFrame
-    filename = "pdf/2016-01.pdf"
-    parsed_table = parse_table(filename)
-    print(parsed_table)
+    csv_path = WORKPATH + 'csv/'
+    filenames = get_pdf_files()
+    for filename in filenames:
+        print(filename)
+        parsed_table = parse_table(WORKPATH + 'pdf/' + filename)
+        parsed_table.to_csv(csv_path + filename.replace(".pdf", ".csv"), index = False)
 
 
 if __name__ == '__main__':
