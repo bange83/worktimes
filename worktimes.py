@@ -2,8 +2,22 @@ import tabula
 import pandas as pd
 import numpy as np
 
-# Read pdf into DataFrame
-filename = "2016-01.pdf"
+
+def filter_weekdays(table):
+        valid_weekdays = ['MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO']
+        return table[table[0].str.contains(('|').join(valid_weekdays)) == True]
+
+
+def glz2float(x):
+        x = str(x)
+        if x.find("-") > 0:
+            x = x.replace("-", "")
+            x = x.replace(",", ".")
+            return -1 * float(x)
+        else:
+            x = x.replace(",", ".")
+            return float(x)
+
 
 def parse_table(filename):
     df = tabula.read_pdf(filename, encoding='ISO-8859-1', multiple_tables=True)
@@ -13,11 +27,6 @@ def parse_table(filename):
     if pd.isnull(table[1]).all():
         del table[1]
         table.columns = np.arange(0, 11)
-
-
-    def filter_weekdays(table):
-        valid_weekdays = ['MO', 'DI', 'MI', 'DO', 'FR', 'SA', 'SO']
-        return table[table[0].str.contains(('|').join(valid_weekdays)) == True]
 
     pd.options.mode.chained_assignment = None
 
@@ -33,19 +42,19 @@ def parse_table(filename):
     table['restbonus'] = table[6].str.replace(",", ".").astype(float)
     table['worktime'] = table[7].str.replace(",", ".").astype(float)
     table['solltime'] = table[8].str.replace(",", ".").astype(float)
-
-    def f(x):
-        x = str(x)
-        if x.find("-") > 0:
-            x = x.replace("-", "")
-            x = x.replace(",", ".")
-            return -1 * float(x)
-        else:
-            x = x.replace(",", ".")
-            return float(x)
-
-    table['glz'] = table[9].apply(lambda x: f(x))
+    table['glz'] = table[9].apply(lambda x: glz2float(x))
     table['overworktime'] = table[10].str.replace(",", ".").astype(float)
 
     parsed_table = table.loc[:, 'day':'overworktime']
     parsed_table.to_csv(filename.replace(".pdf", ".csv"), index=False)
+
+
+def main():
+    # Read pdf into DataFrame
+    filename = "2016-01.pdf"
+    parsed_table = parse_table(filename)
+    print(parsed_table)
+
+
+if __name__ == '__main__':
+    main()
