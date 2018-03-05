@@ -46,12 +46,13 @@ def parse_table(filename):
     table['overworktime'] = table[10].str.replace(",", ".").astype(float)
 
     parsed_table = table.loc[:, 'day':'overworktime']
-    parsed_table.to_csv(filename.replace(".pdf", ".csv"), index=False)
+    return parsed_table 
+    #parsed_table.to_csv(filename.replace(".pdf", ".csv"), index=False)
 
 
 def main():
     # Read pdf into DataFrame
-    filename = "2016-01.pdf"
+    filename = "pdf/2016-01.pdf"
     parsed_table = parse_table(filename)
     print(parsed_table)
 
